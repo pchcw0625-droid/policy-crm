@@ -835,6 +835,18 @@ async function saveConsult() {
       memo: document.getElementById('s-memo').value,
       audio_url: audioUrl || '',
     };
+    // book_date, book_time 값 재확인
+    const bookDateVal = document.getElementById('s-book-date').value;
+    const bookTimeVal = document.getElementById('s-book-time').value;
+    entry.book_date = bookDateVal || null;
+    entry.book_time = bookTimeVal || null;
+
+    if (result === '예약확정' && !bookDateVal) {
+      toast('⚠️ 예약일을 입력해주세요!');
+      btn.disabled = false; btn.textContent = '☁️ 상담 저장';
+      return;
+    }
+
     // 예약확정일 경우 기존 예약확정 기록이 있으면 update, 없으면 insert
     if (result === '예약확정') {
       const existing = consults.find(c => c.db_id === companyId && c.result === '예약확정');
@@ -1159,12 +1171,20 @@ function setResult(btn, value) {
   if (value === '예약확정') {
     if (bookSection) {
       bookSection.style.borderColor = '#185FA5';
+      bookSection.style.borderWidth = '2px';
       bookSection.style.background = '#E6F1FB';
     }
-    document.getElementById('s-book-date').focus();
+    // 예약일 자동으로 오늘 날짜 설정
+    const dateInput = document.getElementById('s-book-date');
+    if (!dateInput.value) {
+      const today = new Date();
+      dateInput.value = today.toISOString().slice(0,10);
+    }
+    dateInput.focus();
   } else {
     if (bookSection) {
       bookSection.style.borderColor = 'var(--border)';
+      bookSection.style.borderWidth = '1px';
       bookSection.style.background = '';
     }
   }
