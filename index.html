@@ -828,15 +828,27 @@ async function saveConsult() {
       tax: document.getElementById('s-tax').value,
       need_amt: document.getElementById('s-need').value,
       timing: document.getElementById('s-timing').value,
-      book_date: document.getElementById('s-book-date').value,
-      book_time: document.getElementById('s-book-time').value,
+      book_date: document.getElementById('s-book-date').value || null,
+      book_time: document.getElementById('s-book-time').value || null,
       confirm_tel: document.getElementById('s-confirm-tel').value,
       confirm_status: document.getElementById('s-confirm').value,
       memo: document.getElementById('s-memo').value,
       audio_url: audioUrl || '',
     };
-    const { error: ce } = await sb.from('consults').insert(entry);
-    if (ce) throw ce;
+    // 예약확정일 경우 기존 예약확정 기록이 있으면 update, 없으면 insert
+    if (result === '예약확정') {
+      const existing = consults.find(c => c.db_id === companyId && c.result === '예약확정');
+      if (existing) {
+        const { error: ue2 } = await sb.from('consults').update(entry).eq('id', existing.id);
+        if (ue2) throw ue2;
+      } else {
+        const { error: ce } = await sb.from('consults').insert(entry);
+        if (ce) throw ce;
+      }
+    } else {
+      const { error: ce } = await sb.from('consults').insert(entry);
+      if (ce) throw ce;
+    }
     const { error: ue } = await sb.from('clients').update({ status: result }).eq('id', companyId);
     if (ue) throw ue;
     await loadAll();
@@ -882,7 +894,7 @@ function updateDash() {
     ).join('');
   }
   const today = new Date().toISOString().slice(0,10);
-  const todayBooks = consults.filter(c => c.result === '예약확정' && c.book_date === today)
+  const todayBooks = consults.filter(c => c.result === '예약확정' && c.book_date && String(c.book_date).trim() === today)
     .sort((a,b) => (a.book_time||'').localeCompare(b.book_time||''));
   const ts = document.getElementById('today-schedule');
   if (!todayBooks.length) { ts.innerHTML = '<div class="no-data">오늘 예약된 상담이 없습니다</div>'; }
@@ -907,7 +919,7 @@ function renderCalendar() {
   const first = new Date(calYear, calMonth, 1).getDay();
   const days = new Date(calYear, calMonth+1, 0).getDate();
   const today = new Date();
-  const bookingDates = new Set(consults.filter(c => c.result === '예약확정' && c.book_date).map(c => c.book_date));
+  const bookingDates = new Set(consults.filter(c => c.result === '예약확정' && c.book_date).map(c => String(c.book_date).trim()));
   let html = '';
   for (let i = 0; i < first; i++) html += '<div></div>';
   for (let d = 1; d <= days; d++) {
@@ -931,7 +943,7 @@ function renderDaySchedule() {
   const [y,m,d] = selectedDate.split('-');
   document.getElementById('day-title').textContent = `${y}년 ${parseInt(m)}월 ${parseInt(d)}일 예약 일정`;
   const show = [1,2,3].filter(a => document.getElementById(`fil-a${a}`).checked);
-  const books = consults.filter(c => c.result==='예약확정' && c.book_date && c.book_date===selectedDate && show.includes(parseInt(c.agent)))
+  const books = consults.filter(c => c.result==='예약확정' && c.book_date && String(c.book_date).trim()===String(selectedDate).trim() && show.includes(parseInt(c.agent)))
     .sort((a,b) => (a.book_time||'').localeCompare(b.book_time||''));
   const cont = document.getElementById('day-schedule-content');
   if (!books.length) { cont.innerHTML = '<div class="no-data">이 날 예약이 없습니다</div>'; return; }
@@ -1143,13 +1155,18 @@ function setResult(btn, value) {
   btn.style.borderColor = '#185FA5';
   btn.style.color = '#fff';
   // 예약확정 선택시 예약 섹션 강조
+  const bookSection = document.getElementById('book-section');
   if (value === '예약확정') {
-    document.querySelector('.script-section.s-book').style.borderLeftColor = '#185FA5';
-    document.querySelector('.script-section.s-book').style.background = '#E6F1FB';
+    if (bookSection) {
+      bookSection.style.borderColor = '#185FA5';
+      bookSection.style.background = '#E6F1FB';
+    }
     document.getElementById('s-book-date').focus();
   } else {
-    document.querySelector('.script-section.s-book').style.borderLeftColor = '';
-    document.querySelector('.script-section.s-book').style.background = '';
+    if (bookSection) {
+      bookSection.style.borderColor = 'var(--border)';
+      bookSection.style.background = '';
+    }
   }
 }
 
