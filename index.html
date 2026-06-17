@@ -107,7 +107,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5}
 .loading{opacity:0.5;pointer-events:none}
 hr{border:none;border-top:1px solid var(--border);margin:16px 0}
 /* 슬라이드 패널 */
-.slide-panel{position:fixed;top:0;right:-680px;width:680px;height:100vh;background:var(--bg);box-shadow:-4px 0 20px rgba(0,0,0,0.15);z-index:500;transition:right 0.3s ease;display:flex;flex-direction:column;overflow:hidden}
+.slide-panel{position:fixed;top:56px;right:-560px;width:560px;height:calc(100vh - 56px);background:var(--bg);box-shadow:-4px 0 24px rgba(0,0,0,0.12);z-index:500;transition:right 0.3s ease;display:flex;flex-direction:column;overflow:hidden;border-left:1px solid var(--border)}
 .slide-panel.open{right:0}
 .slide-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:499;display:none}
 .slide-overlay.open{display:block}
@@ -680,7 +680,7 @@ function renderList() {
       <td><span class="avatar ${AV_CLASS[r.agent]}">${r.agent}</span></td>
       <td><span class="badge ${STATUS_BADGE[r.status]||'badge-gray'}">${r.status}</span></td>
       <td style="font-size:12px;white-space:nowrap">${bk ? (bk.book_date||'')+' '+(bk.book_time||'') : '-'}</td>
-      <td><button class="btn btn-sm" onclick="openConsultFor(${r.id})">상담입력</button></td>
+      <td><button class="btn btn-sm btn-primary" onclick="openConsultFor(${r.id})" style="white-space:nowrap">✏️ 상담입력</button></td>
     </tr>`;
   }).join('');
 }
@@ -688,18 +688,16 @@ function renderList() {
 function openConsultFor(id) {
   const row = db.find(r => r.id === id);
   if (row) {
-    // 패널 상단 정보 표시
     document.getElementById('panel-company-name').textContent = (row.company||'') + (row.owner ? ' · ' + row.owner + ' 대표' : '');
     document.getElementById('panel-company-info').textContent = (row.industry||'') + (row.mobile ? ' | ' + row.mobile : row.tel ? ' | ' + row.tel : '') + (row.address ? ' | ' + row.address : '');
     document.getElementById('c-agent').value = row.agent;
     document.getElementById('s-confirm-tel').value = row.mobile || row.tel || '';
-    // 현재 업체 ID 저장
     document.getElementById('slide-panel').dataset.dbId = id;
   }
   setNow();
-  // 패널 열기
+  // 오버레이 없이 패널만 열기 (목록 계속 보임)
   document.getElementById('slide-panel').classList.add('open');
-  document.getElementById('slide-overlay').classList.add('open');
+  document.getElementById('slide-overlay').classList.remove('open');
 }
 
 function closePanel() {
@@ -787,8 +785,8 @@ async function saveConsult() {
     const { error: ue } = await sb.from('clients').update({ status: result }).eq('id', companyId);
     if (ue) throw ue;
     await loadAll();
-    toast('✅ 클라우드에 저장 완료!');
-    closePanel();
+    toast('✅ 저장 완료!');
+    renderList();
     ['s-open-year','s-revenue','s-monthly','s-credit','s-need','s-timing','s-book-date','s-book-time','s-memo'].forEach(id => document.getElementById(id).value = '');
     selectedAudioFile = null;
     document.getElementById('audio-label').textContent = '🎙️ 클릭하여 녹음 파일 선택 (MP3, WAV, M4A)';
