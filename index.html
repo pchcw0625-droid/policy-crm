@@ -144,6 +144,9 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
     <div class="nav-item" onclick="goTo('consult')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>상담 입력
     </div>
+    <div class="nav-item" onclick="goTo('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>상담 히스토리
+    </div>
     <div class="nav-item" onclick="goTo('download')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>다운로드
     </div>
@@ -377,6 +380,25 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
       </div>
     </div>
 
+    <!-- 상담 히스토리 -->
+    <div class="section" id="sec-history">
+      <div class="card" style="padding:14px 18px;margin-bottom:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="hist-search" placeholder="업체명 검색..." style="width:200px" oninput="renderHistory()">
+          <select id="hist-agent" style="width:120px" onchange="renderHistory()">
+            <option value="">전체 상담원</option>
+            <option value="1">권혜린</option><option value="2">최정민</option><option value="3">이미영</option>
+          </select>
+          <select id="hist-result" style="width:120px" onchange="renderHistory()">
+            <option value="">전체 결과</option>
+            <option>통화완료</option><option>예약확정</option><option>부재중</option><option>거절</option><option>재통화예정</option>
+          </select>
+          <span style="margin-left:auto;font-size:12px;color:var(--text3)" id="hist-count"></span>
+        </div>
+      </div>
+      <div id="hist-list"></div>
+    </div>
+
     <!-- 다운로드 -->
     <div class="section" id="sec-download">
       <div class="card">
@@ -415,6 +437,11 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
     <button class="btn btn-sm" onclick="closePanel()">✕ 닫기</button>
   </div>
   <div class="slide-body">
+    <!-- 이전 상담 기록 -->
+    <div id="prev-history" style="display:none;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px">📋 이전 상담 기록</div>
+      <div id="prev-history-list"></div>
+    </div>
     <div class="card" style="margin-bottom:12px">
       <div class="form-grid">
         <div class="form-row"><label class="lbl">담당 상담원</label>
@@ -514,6 +541,7 @@ const PAGE_INFO = {
   upload:['DB 업로드','엑셀 파일로 고객 DB를 등록하세요'],
   list:['DB 목록','전체 고객 DB를 조회하고 관리하세요'],
   consult:['상담 입력','통화 후 상담 내용을 입력하세요'],
+  history:['상담 히스토리','업체별 전체 상담 기록을 확인하세요'],
   download:['다운로드','상담 내용과 예약 일정을 내보내세요'],
 };
 
@@ -558,6 +586,7 @@ function goTo(name) {
   document.getElementById('page-title').textContent = PAGE_INFO[name][0];
   document.getElementById('page-sub').textContent = PAGE_INFO[name][1];
   if (name === 'consult') { populateCompanySelect(); setNow(); }
+  if (name === 'history') renderHistory();
   if (name === 'schedule') { renderCalendar(); renderMonthList(); }
   if (name === 'download') updatePreview();
 }
@@ -695,6 +724,29 @@ function openConsultFor(id) {
     document.getElementById('slide-panel').dataset.dbId = id;
   }
   setNow();
+  // 이전 상담 기록 표시
+  const prevList = consults.filter(c => c.db_id === id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  const histDiv = document.getElementById('prev-history');
+  const histList = document.getElementById('prev-history-list');
+  if (prevList.length > 0) {
+    histDiv.style.display = 'block';
+    const statusColor = {'통화완료':'#085041','예약확정':'#0C447C','부재중':'#633806','거절':'#791F1F','재통화예정':'#633806'};
+    const statusBg = {'통화완료':'#E1F5EE','예약확정':'#E6F1FB','부재중':'#FAEEDA','거절':'#FCEBEB','재통화예정':'#FAEEDA'};
+    histList.innerHTML = prevList.map(c => `
+      <div style="background:var(--bg2);border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:3px solid ${statusBg[c.result]||'#eee'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:600;background:${statusBg[c.result]||'#f1f0ed'};color:${statusColor[c.result]||'#555'};padding:2px 8px;border-radius:12px">${c.result}</span>
+          <span style="font-size:11px;color:var(--text3)">${(c.datetime||'').replace('T',' ')}</span>
+        </div>
+        ${c.open_year||c.revenue||c.credit ? `<div style="font-size:12px;color:var(--text2);margin-bottom:2px">개업: ${c.open_year||'-'} | 연매출: ${c.revenue||'-'} | 신용: ${c.credit||'-'}</div>` : ''}
+        ${c.book_date ? `<div style="font-size:12px;color:var(--blue-text);font-weight:500">📅 예약: ${c.book_date} ${c.book_time||''}</div>` : ''}
+        ${c.memo ? `<div style="font-size:12px;color:var(--text2);margin-top:2px">📝 ${c.memo}</div>` : ''}
+        ${c.audio_url ? `<div style="margin-top:4px"><a href="${c.audio_url}" target="_blank" style="font-size:11px;color:var(--blue)">🎙️ 녹음 재생</a></div>` : ''}
+      </div>
+    `).join('');
+  } else {
+    histDiv.style.display = 'none';
+  }
   // 오버레이 없이 패널만 열기 (목록 계속 보임)
   document.getElementById('slide-panel').classList.add('open');
   document.getElementById('slide-overlay').classList.remove('open');
@@ -1006,6 +1058,77 @@ function downloadAudioList() {
   const f=consults.filter(c=>(!da||String(c.agent)===da)&&c.audio_url);
   if(!f.length){toast('녹음 파일이 없습니다');return;}
   dl(f.map(c=>`[상담원 ${c.agent}] ${c.company} | ${c.datetime||''}\n${c.audio_url}`).join('\n\n'),`녹음파일목록_${today()}.txt`);
+}
+
+// 히스토리 렌더링
+function renderHistory() {
+  const kw = (document.getElementById('hist-search')?.value||'').toLowerCase();
+  const ha = document.getElementById('hist-agent')?.value||'';
+  const hr = document.getElementById('hist-result')?.value||'';
+  const statusColor = {'통화완료':'#085041','예약확정':'#0C447C','부재중':'#633806','거절':'#791F1F','재통화예정':'#633806'};
+  const statusBg = {'통화완료':'#E1F5EE','예약확정':'#E6F1FB','부재중':'#FAEEDA','거절':'#FCEBEB','재통화예정':'#FAEEDA'};
+  const agentNames = ['','권혜린','최정민','이미영'];
+  const avClass = ['','av1','av2','av3'];
+
+  // 업체별로 그룹핑
+  const filtered = consults.filter(c =>
+    (!kw || (c.company||'').toLowerCase().includes(kw)) &&
+    (!ha || String(c.agent)===ha) &&
+    (!hr || c.result===hr)
+  );
+  document.getElementById('hist-count').textContent = filtered.length + '건';
+
+  // 업체별 그룹
+  const grouped = {};
+  filtered.forEach(c => {
+    const key = c.db_id;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(c);
+  });
+
+  const container = document.getElementById('hist-list');
+  if (!filtered.length) { container.innerHTML = '<div class="no-data">상담 기록이 없습니다</div>'; return; }
+
+  container.innerHTML = Object.keys(grouped).map(dbId => {
+    const records = grouped[dbId].sort((a,b) => new Date(b.created_at)-new Date(a.created_at));
+    const row = db.find(r => r.id === parseInt(dbId));
+    return `<div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+        <div>
+          <span style="font-size:15px;font-weight:600">${row?.company||'업체'}</span>
+          ${row?.owner ? `<span style="font-size:13px;color:var(--text2);margin-left:6px">${row.owner} 대표</span>` : ''}
+          <span style="font-size:12px;color:var(--text3);margin-left:8px">${row?.industry||''}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2)">${row?.mobile||row?.tel||''}</div>
+      </div>
+      ${records.map(c => `
+        <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="flex-shrink:0">
+            <span class="avatar ${avClass[c.agent]}" style="width:22px;height:22px;font-size:10px">${agentNames[c.agent]||c.agent}</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <span style="font-size:11px;font-weight:600;background:${statusBg[c.result]||'#f1f0ed'};color:${statusColor[c.result]||'#555'};padding:1px 7px;border-radius:10px">${c.result}</span>
+              <span style="font-size:11px;color:var(--text3)">${(c.datetime||'').replace('T',' ')}</span>
+              ${c.book_date ? `<span style="font-size:11px;color:var(--blue-text);font-weight:500">📅 ${c.book_date} ${c.book_time||''}</span>` : ''}
+            </div>
+            <div style="font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap">
+              ${c.open_year ? `<span>개업: ${c.open_year}</span>` : ''}
+              ${c.revenue ? `<span>연매출: ${c.revenue}</span>` : ''}
+              ${c.need_amt ? `<span>필요자금: ${c.need_amt}</span>` : ''}
+              ${c.credit ? `<span>신용: ${c.credit}</span>` : ''}
+            </div>
+            ${c.memo ? `<div style="font-size:12px;color:var(--text2);margin-top:2px">📝 ${c.memo}</div>` : ''}
+            ${c.audio_url ? `<div style="margin-top:3px"><a href="${c.audio_url}" target="_blank" style="font-size:11px;color:var(--blue)">🎙️ 녹음 재생</a></div>` : ''}
+          </div>
+          <div style="flex-shrink:0;display:flex;gap:4px">
+            <button onclick="editConsult(${c.id})" style="background:#E6F1FB;color:#0C447C;border:1px solid #b3d4f0;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">✏️</button>
+            <button onclick="deleteConsult(${c.id}, ${c.db_id})" style="background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">🗑️</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('');
 }
 
 // setResult 함수
