@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>정책자금 상담 DB 관리 시스템</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -394,8 +394,7 @@ const SUPABASE_URL = 'https://pdfdhevxnzpgrmqiegn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZmR4aGV2eG56cGdybXFpZWduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2Mzg5NjMsImV4cCI6MjA5NzIxNDk2M30.JcS1mJyntdVw-ufIw1dkn8J82W81foGjtlyhdAV5Dmk';
 // =============================================
 
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let db = [];
 let consults = [];
