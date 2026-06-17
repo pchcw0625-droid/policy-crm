@@ -879,7 +879,7 @@ function renderDaySchedule() {
   const [y,m,d] = selectedDate.split('-');
   document.getElementById('day-title').textContent = `${y}년 ${parseInt(m)}월 ${parseInt(d)}일 예약 일정`;
   const show = [1,2,3].filter(a => document.getElementById(`fil-a${a}`).checked);
-  const books = consults.filter(c => c.result==='예약확정' && c.book_date===selectedDate && show.includes(c.agent))
+  const books = consults.filter(c => c.result==='예약확정' && c.book_date && c.book_date===selectedDate && show.includes(parseInt(c.agent)))
     .sort((a,b) => (a.book_time||'').localeCompare(b.book_time||''));
   const cont = document.getElementById('day-schedule-content');
   if (!books.length) { cont.innerHTML = '<div class="no-data">이 날 예약이 없습니다</div>'; return; }
@@ -904,7 +904,7 @@ function renderDaySchedule() {
 
 function renderMonthList() {
   const prefix = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-  const books = consults.filter(c => c.result==='예약확정' && (c.book_date||'').startsWith(prefix))
+  const books = consults.filter(c => c.result==='예약확정' && c.book_date && c.book_date.startsWith(prefix))
     .sort((a,b) => (a.book_date+a.book_time).localeCompare(b.book_date+b.book_time));
   const body = document.getElementById('month-book-list');
   const empty = document.getElementById('month-book-empty');
@@ -1027,6 +1027,36 @@ function setResult(btn, value) {
   } else {
     document.querySelector('.script-section.s-book').style.borderLeftColor = '';
     document.querySelector('.script-section.s-book').style.background = '';
+  }
+}
+
+// 상담 수정 함수
+function editConsult(consultId) {
+  const c = consults.find(x => x.id === consultId);
+  if (!c) return;
+  const newDate = prompt('예약일 수정 (예: 2026-06-20)', c.book_date||'');
+  if (newDate === null) return;
+  const newTime = prompt('예약시간 수정 (예: 14:00)', c.book_time||'');
+  if (newTime === null) return;
+  const newMemo = prompt('메모 수정', c.memo||'');
+  if (newMemo === null) return;
+  updateConsult(consultId, newDate, newTime, newMemo);
+}
+
+async function updateConsult(consultId, newDate, newTime, newMemo) {
+  try {
+    const { error } = await sb.from('consults').update({
+      book_date: newDate,
+      book_time: newTime,
+      memo: newMemo
+    }).eq('id', consultId);
+    if (error) throw error;
+    await loadAll();
+    if (selectedDate) renderDaySchedule();
+    renderMonthList();
+    toast('✅ 수정 완료!');
+  } catch(e) {
+    toast('수정 실패: ' + e.message);
   }
 }
 
