@@ -106,6 +106,15 @@ textarea{resize:vertical;min-height:72px;line-height:1.5}
 .sync-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:20px;background:var(--green-bg);color:var(--green-text)}
 .loading{opacity:0.5;pointer-events:none}
 hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+/* 슬라이드 패널 */
+.slide-panel{position:fixed;top:0;right:-680px;width:680px;height:100vh;background:var(--bg);box-shadow:-4px 0 20px rgba(0,0,0,0.15);z-index:500;transition:right 0.3s ease;display:flex;flex-direction:column;overflow:hidden}
+.slide-panel.open{right:0}
+.slide-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:499;display:none}
+.slide-overlay.open{display:block}
+.slide-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--bg)}
+.slide-body{flex:1;overflow-y:auto;padding:20px}
+.slide-footer{padding:14px 20px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -165,9 +174,9 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
         <div class="stat-card"><div class="stat-num" id="s-book" style="color:var(--blue)">-</div><div class="stat-label">예약확정</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
-        <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:8px"><span class="avatar av1">1</span> 상담원 1</div><div style="font-size:24px;font-weight:700" id="d-a1">-</div><div class="prog-bar"><div class="prog-fill" id="d-a1-bar" style="background:#7F77DD;width:0%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:4px">예약 <span id="d-a1-book">0</span>건</div></div>
-        <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:8px"><span class="avatar av2">2</span> 상담원 2</div><div style="font-size:24px;font-weight:700" id="d-a2">-</div><div class="prog-bar"><div class="prog-fill" id="d-a2-bar" style="background:#1D9E75;width:0%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:4px">예약 <span id="d-a2-book">0</span>건</div></div>
-        <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:8px"><span class="avatar av3">3</span> 상담원 3</div><div style="font-size:24px;font-weight:700" id="d-a3">-</div><div class="prog-bar"><div class="prog-fill" id="d-a3-bar" style="background:#EF9F27;width:0%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:4px">예약 <span id="d-a3-book">0</span>건</div></div>
+        <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:8px"><span class="avatar av1">1</span> 권혜린</div><div style="font-size:24px;font-weight:700" id="d-a1">-</div><div class="prog-bar"><div class="prog-fill" id="d-a1-bar" style="background:#7F77DD;width:0%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:4px">예약 <span id="d-a1-book">0</span>건</div></div>
+        <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:8px"><span class="avatar av2">2</span> 최정민</div><div style="font-size:24px;font-weight:700" id="d-a2">-</div><div class="prog-bar"><div class="prog-fill" id="d-a2-bar" style="background:#1D9E75;width:0%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:4px">예약 <span id="d-a2-book">0</span>건</div></div>
+        <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:8px"><span class="avatar av3">3</span> 이미영</div><div style="font-size:24px;font-weight:700" id="d-a3">-</div><div class="prog-bar"><div class="prog-fill" id="d-a3-bar" style="background:#EF9F27;width:0%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:4px">예약 <span id="d-a3-book">0</span>건</div></div>
       </div>
       <div class="card"><div class="card-title">최근 상담 활동</div><div id="recent-log"><div class="no-data">로딩 중...</div></div></div>
       <div class="card"><div class="card-title">오늘 예약 일정</div><div id="today-schedule"><div class="no-data">로딩 중...</div></div></div>
@@ -194,9 +203,9 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
           <div class="card">
             <div class="card-title">상담원 필터</div>
             <div style="display:flex;flex-direction:column;gap:6px">
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="fil-a1" checked onchange="renderDaySchedule()"> <span class="avatar av1">1</span> 상담원 1</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="fil-a2" checked onchange="renderDaySchedule()"> <span class="avatar av2">2</span> 상담원 2</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="fil-a3" checked onchange="renderDaySchedule()"> <span class="avatar av3">3</span> 상담원 3</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="fil-a1" checked onchange="renderDaySchedule()"> <span class="avatar av1">1</span> 권혜린</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="fil-a2" checked onchange="renderDaySchedule()"> <span class="avatar av2">2</span> 최정민</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="fil-a3" checked onchange="renderDaySchedule()"> <span class="avatar av3">3</span> 이미영</label>
             </div>
           </div>
         </div>
@@ -240,6 +249,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
         <div class="card-title">수동 추가</div>
         <div class="form-grid">
           <div class="form-row"><label class="lbl">업체명</label><input type="text" id="m-company" placeholder="예) 홍길동 식당"></div>
+          <div class="form-row"><label class="lbl">대표자명</label><input type="text" id="m-owner" placeholder="예) 홍길동"></div>
           <div class="form-row"><label class="lbl">업종</label><input type="text" id="m-type" placeholder="예) 음식업"></div>
           <div class="form-row"><label class="lbl">전화</label><input type="text" id="m-tel" placeholder="02-0000-0000"></div>
           <div class="form-row"><label class="lbl">휴대폰</label><input type="text" id="m-mobile" placeholder="010-0000-0000"></div>
@@ -256,7 +266,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
           <input type="text" id="search-kw" placeholder="업체명 검색..." style="width:200px" oninput="renderList()">
           <select id="fil-agent" style="width:120px" onchange="renderList()">
             <option value="">전체 상담원</option>
-            <option value="1">상담원 1</option><option value="2">상담원 2</option><option value="3">상담원 3</option>
+            <option value="1">권혜린</option><option value="2">최정민</option><option value="3">이미영</option>
           </select>
           <select id="fil-status" style="width:120px" onchange="renderList()">
             <option value="">전체 상태</option>
@@ -269,7 +279,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>#</th><th>업체명</th><th>업종</th><th>전화</th><th>휴대폰</th><th>주소</th><th>담당</th><th>상태</th><th>예약일시</th><th>관리</th></tr></thead>
+            <thead><tr><th>#</th><th>업체명</th><th>대표자</th><th>업종</th><th>전화</th><th>휴대폰</th><th>주소</th><th>담당</th><th>상태</th><th>예약일시</th><th>관리</th></tr></thead>
             <tbody id="list-body"></tbody>
           </table>
         </div>
@@ -285,14 +295,21 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
             <div class="card-title">기본 정보</div>
             <div class="form-grid">
               <div class="form-row"><label class="lbl">담당 상담원</label>
-                <select id="c-agent"><option value="1">상담원 1</option><option value="2">상담원 2</option><option value="3">상담원 3</option></select>
+                <select id="c-agent"><option value="1">권혜린</option><option value="2">최정민</option><option value="3">이미영</option></select>
               </div>
               <div class="form-row"><label class="lbl">업체 선택</label>
                 <select id="c-company" onchange="fillContact()"><option value="">-- 업체 선택 --</option></select>
               </div>
               <div class="form-row"><label class="lbl">통화일시</label><input type="datetime-local" id="c-datetime"></div>
               <div class="form-row"><label class="lbl">통화 결과</label>
-                <select id="c-result"><option>통화완료</option><option>예약확정</option><option>부재중</option><option>거절</option><option>재통화예정</option></select>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+                  <button type="button" onclick="setResult(this,'통화완료')" class="result-btn" style="flex:1;padding:10px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:13px;font-weight:500;cursor:pointer">✅ 통화완료</button>
+                  <button type="button" onclick="setResult(this,'예약확정')" class="result-btn" style="flex:1;padding:10px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:13px;font-weight:500;cursor:pointer">📅 예약확정</button>
+                  <button type="button" onclick="setResult(this,'부재중')" class="result-btn" style="flex:1;padding:10px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:13px;font-weight:500;cursor:pointer">📵 부재중</button>
+                  <button type="button" onclick="setResult(this,'거절')" class="result-btn" style="flex:1;padding:10px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:13px;font-weight:500;cursor:pointer">❌ 거절</button>
+                  <button type="button" onclick="setResult(this,'재통화예정')" class="result-btn" style="flex:1;padding:10px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:13px;font-weight:500;cursor:pointer">🔄 재통화</button>
+                </div>
+                <input type="hidden" id="c-result" value="통화완료">
               </div>
             </div>
           </div>
@@ -365,7 +382,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
       <div class="card">
         <div class="card-title">내보내기</div>
         <div class="form-grid" style="margin-bottom:14px">
-          <div class="form-row"><label class="lbl">상담원</label><select id="dl-agent"><option value="">전체</option><option value="1">상담원 1</option><option value="2">상담원 2</option><option value="3">상담원 3</option></select></div>
+          <div class="form-row"><label class="lbl">상담원</label><select id="dl-agent"><option value="">전체</option><option value="1">권혜린</option><option value="2">최정민</option><option value="3">이미영</option></select></div>
           <div class="form-row"><label class="lbl">상태</label><select id="dl-status"><option value="">전체</option><option value="예약확정">예약확정</option><option value="통화완료">통화완료</option><option value="부재중">부재중</option></select></div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -385,6 +402,89 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
 </div>
 
 <div class="toast" id="toast"></div>
+<!-- 슬라이드 오버레이 -->
+<div class="slide-overlay" id="slide-overlay" onclick="closePanel()"></div>
+
+<!-- 상담입력 슬라이드 패널 -->
+<div class="slide-panel" id="slide-panel">
+  <div class="slide-header">
+    <div>
+      <div style="font-size:15px;font-weight:600" id="panel-company-name">상담 입력</div>
+      <div style="font-size:12px;color:var(--text3)" id="panel-company-info"></div>
+    </div>
+    <button class="btn btn-sm" onclick="closePanel()">✕ 닫기</button>
+  </div>
+  <div class="slide-body">
+    <div class="card" style="margin-bottom:12px">
+      <div class="form-grid">
+        <div class="form-row"><label class="lbl">담당 상담원</label>
+          <select id="c-agent"><option value="1">권혜린</option><option value="2">최정민</option><option value="3">이미영</option></select>
+        </div>
+        <div class="form-row"><label class="lbl">통화일시</label><input type="datetime-local" id="c-datetime"></div>
+      </div>
+      <div class="form-row"><label class="lbl">통화 결과</label>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px">
+          <button type="button" onclick="setResult(this,'통화완료')" class="result-btn" style="padding:10px 4px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:12px;font-weight:500;cursor:pointer;text-align:center">✅<br>통화완료</button>
+          <button type="button" onclick="setResult(this,'예약확정')" class="result-btn" style="padding:10px 4px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:12px;font-weight:500;cursor:pointer;text-align:center">📅<br>예약확정</button>
+          <button type="button" onclick="setResult(this,'부재중')" class="result-btn" style="padding:10px 4px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:12px;font-weight:500;cursor:pointer;text-align:center">📵<br>부재중</button>
+          <button type="button" onclick="setResult(this,'거절')" class="result-btn" style="padding:10px 4px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:12px;font-weight:500;cursor:pointer;text-align:center">❌<br>거절</button>
+          <button type="button" onclick="setResult(this,'재통화예정')" class="result-btn" style="padding:10px 4px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:12px;font-weight:500;cursor:pointer;text-align:center">🔄<br>재통화</button>
+        </div>
+        <input type="hidden" id="c-result" value="통화완료">
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="font-size:13px;color:var(--blue-text)">① 오프닝 반응</div>
+      <select id="s-opening"><option>긍정적 (계속 청취)</option><option>보통 (설명 후 관심)</option><option>부정적 (거부감)</option><option>바쁨 (재통화 요청)</option></select>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="font-size:13px;color:var(--teal)">② 조건 확인</div>
+      <div class="form-grid">
+        <div class="form-row"><label class="lbl">개업년도</label><input type="text" id="s-open-year" placeholder="예) 2021년"></div>
+        <div class="form-row"><label class="lbl">작년 연매출</label><input type="text" id="s-revenue" placeholder="예) 1억 2천만원"></div>
+        <div class="form-row"><label class="lbl">최근 한달 매출</label><input type="text" id="s-monthly" placeholder="예) 800만원"></div>
+        <div class="form-row"><label class="lbl">대출 현황</label><select id="s-loan"><option>없음</option><option>사업자대출 있음</option><option>개인대출 있음</option><option>둘 다 있음</option></select></div>
+        <div class="form-row"><label class="lbl">신용점수 (나이스)</label><input type="text" id="s-credit" placeholder="예) 750점대"></div>
+        <div class="form-row"><label class="lbl">세금/지방세 체납</label><select id="s-tax"><option>없음</option><option>세금 체납 있음</option><option>지방세 체납 있음</option><option>과태료 체납 있음</option></select></div>
+        <div class="form-row"><label class="lbl">필요 자금</label><input type="text" id="s-need" placeholder="예) 5천만원"></div>
+        <div class="form-row"><label class="lbl">필요 시기</label><input type="text" id="s-timing" placeholder="예) 이번 달 안에"></div>
+      </div>
+    </div>
+
+    <div class="card" id="book-section" style="margin-bottom:12px;border:2px solid var(--border)">
+      <div class="card-title" style="font-size:13px;color:var(--purple)">③ 예약 일정 확정</div>
+      <div class="form-grid">
+        <div class="form-row"><label class="lbl">📅 예약일</label><input type="date" id="s-book-date"></div>
+        <div class="form-row"><label class="lbl">⏰ 예약시간</label><input type="time" id="s-book-time"></div>
+        <div class="form-row"><label class="lbl">확인 연락처</label><input type="text" id="s-confirm-tel" placeholder="010-0000-0000"></div>
+        <div class="form-row"><label class="lbl">일정 변경 가능성</label><select id="s-confirm"><option>없음 (확정)</option><option>변경 가능성 있음</option><option>재확인 필요</option></select></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="font-size:13px">④ 메모</div>
+      <textarea id="s-memo" placeholder="특이사항, 고객 반응, 재통화 시 참고사항 등" style="min-height:60px"></textarea>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="font-size:13px">🎤 통화 녹음 파일</div>
+      <div class="upload-zone" style="padding:12px" onclick="document.getElementById('audioFile').click()">
+        <div style="font-size:13px;color:var(--text2)" id="audio-label">🎙️ 클릭하여 녹음 파일 선택 (MP3, WAV, M4A)</div>
+      </div>
+      <input type="file" id="audioFile" accept=".mp3,.wav,.m4a,.ogg" style="display:none" onchange="handleAudio(event)">
+      <div id="audio-progress" style="display:none;margin-top:8px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px" id="audio-progress-text">업로드 중...</div>
+        <div class="prog-bar"><div class="prog-fill" id="audio-prog-fill" style="background:var(--blue);width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px" onclick="saveConsult()">☁️ 상담 저장</button>
+  </div>
+</div>
+
 
 <script>
 // =============================================
@@ -476,6 +576,7 @@ const COL_MAP = {
   industry:['업종','업태','type'],
   tel:['전화','전화번호','tel','phone','대표전화'],
   mobile:['휴대폰','휴대전화','mobile','핸드폰','연락처','휴대'],
+  owner:['대표자','대표','owner','대표자명','사업주'],
   address:['주소','address','addr','소재지','사업장주소'],
 };
 function mapRow(row) {
@@ -515,7 +616,7 @@ async function confirmImport() {
     const rows = pendingRows.map((row, i) => {
       const m = mapRow(row);
       const agentNum = (db.length + i) % 3 + 1;
-      return { agent: agentNum, status: '미통화', company: m.company, industry: m.industry, tel: m.tel, mobile: m.mobile, address: m.address };
+      return { agent: agentNum, status: '미통화', company: m.company, owner: m.owner, industry: m.industry, tel: m.tel, mobile: m.mobile, address: m.address };
     });
     const { error } = await sb.from('clients').insert(rows);
     if (error) throw error;
@@ -538,13 +639,14 @@ async function addManual() {
   const agent = (db.length % 3) + 1;
   const { error } = await sb.from('clients').insert({
     agent, status: '미통화',
-    company, industry: document.getElementById('m-type').value,
+    company, owner: document.getElementById('m-owner').value,
+    industry: document.getElementById('m-type').value,
     tel: document.getElementById('m-tel').value,
     mobile: document.getElementById('m-mobile').value,
     address: document.getElementById('m-addr').value,
   });
   if (error) { toast('저장 실패: ' + error.message); return; }
-  ['m-company','m-type','m-tel','m-mobile','m-addr'].forEach(id => document.getElementById(id).value = '');
+  ['m-company','m-owner','m-type','m-tel','m-mobile','m-addr'].forEach(id => document.getElementById(id).value = '');
   await loadAll();
   toast('✅ 추가 완료!');
 }
@@ -570,6 +672,7 @@ function renderList() {
     return `<tr>
       <td style="color:var(--text3);font-size:12px">${r.id}</td>
       <td style="font-weight:600">${r.company||''}</td>
+      <td style="color:var(--text2)">${r.owner||''}</td>
       <td style="color:var(--text2)">${r.industry||''}</td>
       <td style="font-size:12px">${r.tel||''}</td>
       <td style="font-size:12px">${r.mobile||''}</td>
@@ -583,8 +686,25 @@ function renderList() {
 }
 
 function openConsultFor(id) {
-  goTo('consult');
-  setTimeout(() => { document.getElementById('c-company').value = id; fillContact(); }, 80);
+  const row = db.find(r => r.id === id);
+  if (row) {
+    // 패널 상단 정보 표시
+    document.getElementById('panel-company-name').textContent = (row.company||'') + (row.owner ? ' · ' + row.owner + ' 대표' : '');
+    document.getElementById('panel-company-info').textContent = (row.industry||'') + (row.mobile ? ' | ' + row.mobile : row.tel ? ' | ' + row.tel : '') + (row.address ? ' | ' + row.address : '');
+    document.getElementById('c-agent').value = row.agent;
+    document.getElementById('s-confirm-tel').value = row.mobile || row.tel || '';
+    // 현재 업체 ID 저장
+    document.getElementById('slide-panel').dataset.dbId = id;
+  }
+  setNow();
+  // 패널 열기
+  document.getElementById('slide-panel').classList.add('open');
+  document.getElementById('slide-overlay').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('slide-panel').classList.remove('open');
+  document.getElementById('slide-overlay').classList.remove('open');
 }
 
 // =============================================
@@ -634,7 +754,7 @@ async function uploadAudio(dbId) {
 }
 
 async function saveConsult() {
-  const companyId = parseInt(document.getElementById('c-company').value);
+  const companyId = parseInt(document.getElementById('slide-panel').dataset.dbId);
   if (!companyId) { toast('업체를 선택하세요'); return; }
   const btn = event.target; btn.disabled = true; btn.textContent = '저장 중...';
   try {
@@ -668,6 +788,7 @@ async function saveConsult() {
     if (ue) throw ue;
     await loadAll();
     toast('✅ 클라우드에 저장 완료!');
+    closePanel();
     ['s-open-year','s-revenue','s-monthly','s-credit','s-need','s-timing','s-book-date','s-book-time','s-memo'].forEach(id => document.getElementById(id).value = '');
     selectedAudioFile = null;
     document.getElementById('audio-label').textContent = '🎙️ 클릭하여 녹음 파일 선택 (MP3, WAV, M4A)';
@@ -763,16 +884,17 @@ function renderDaySchedule() {
   if (!books.length) { cont.innerHTML = '<div class="no-data">이 날 예약이 없습니다</div>'; return; }
   cont.innerHTML = books.map(c => {
     const row = db.find(r => r.id === c.db_id);
+    const agentNames = ['','권혜린','최정민','이미영'];
     return `<div class="time-slot">
       <div class="time-label">${c.book_time||'-'}</div>
       <div class="time-content">
-        <div class="time-company">${c.company} <span class="avatar ${AV_CLASS[c.agent]}" style="margin-left:6px">${c.agent}</span></div>
-        <div class="time-details">
-          <span>📞 ${c.confirm_tel||row?.mobile||row?.tel||'-'}</span>
-          <span>📍 ${row?.address||'-'}</span>
-          <span>💰 ${c.need_amt||'-'}</span>
-          ${c.memo ? `<span>📝 ${c.memo}</span>` : ''}
-          ${c.audio_url ? `<span><a href="${c.audio_url}" target="_blank" style="color:var(--blue)">🎙️ 녹음 재생</a></span>` : ''}
+        <div class="time-company" style="font-size:15px">${c.company}${row?.owner ? ' · <span style="font-size:13px;color:var(--text2)">' + row.owner + ' 대표</span>' : ''} <span class="avatar ${AV_CLASS[c.agent]}" style="margin-left:6px;font-size:10px">${agentNames[c.agent]||c.agent}</span></div>
+        <div class="time-details" style="margin-top:6px;display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:13px">📞 <strong>${c.confirm_tel||row?.mobile||row?.tel||'-'}</strong></span>
+          <span style="font-size:13px">📍 ${row?.address||'-'}</span>
+          <span style="font-size:13px">💰 필요자금: ${c.need_amt||'-'}</span>
+          ${c.memo ? `<span style="font-size:12px;color:#666">📝 ${c.memo}</span>` : ''}
+          ${c.audio_url ? `<span><a href="${c.audio_url}" target="_blank" style="color:var(--blue);font-size:12px">🎙️ 녹음 재생</a></span>` : ''}
         </div>
       </div>
     </div>`;
@@ -793,7 +915,7 @@ function renderMonthList() {
     return `<tr>
       <td style="font-weight:600">${parseInt(mm)}/${parseInt(dd)}</td>
       <td style="font-weight:700;color:var(--blue)">${c.book_time||'-'}</td>
-      <td style="font-weight:500">${c.company}</td>
+      <td style="font-weight:500">${c.company}${row?.owner ? '<br><span style="font-size:11px;color:var(--text3)">'+row.owner+' 대표</span>' : ''}</td>
       <td style="color:var(--text2)">${row?.industry||'-'}</td>
       <td style="font-size:12px">${c.confirm_tel||row?.mobile||row?.tel||'-'}</td>
       <td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row?.address||'-'}</td>
@@ -882,6 +1004,28 @@ function downloadAudioList() {
   const f=consults.filter(c=>(!da||String(c.agent)===da)&&c.audio_url);
   if(!f.length){toast('녹음 파일이 없습니다');return;}
   dl(f.map(c=>`[상담원 ${c.agent}] ${c.company} | ${c.datetime||''}\n${c.audio_url}`).join('\n\n'),`녹음파일목록_${today()}.txt`);
+}
+
+// setResult 함수
+function setResult(btn, value) {
+  document.getElementById('c-result').value = value;
+  document.querySelectorAll('.result-btn').forEach(b => {
+    b.style.background = '#fff';
+    b.style.borderColor = '#ccc';
+    b.style.color = '#1a1a1a';
+  });
+  btn.style.background = '#185FA5';
+  btn.style.borderColor = '#185FA5';
+  btn.style.color = '#fff';
+  // 예약확정 선택시 예약 섹션 강조
+  if (value === '예약확정') {
+    document.querySelector('.script-section.s-book').style.borderLeftColor = '#185FA5';
+    document.querySelector('.script-section.s-book').style.background = '#E6F1FB';
+    document.getElementById('s-book-date').focus();
+  } else {
+    document.querySelector('.script-section.s-book').style.borderLeftColor = '';
+    document.querySelector('.script-section.s-book').style.background = '';
+  }
 }
 
 // START
