@@ -217,7 +217,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0}
           <div class="card">
             <div class="card-title">이번 달 예약 전체</div>
             <div class="table-wrap">
-              <table><thead><tr><th>날짜</th><th>시간</th><th>업체명</th><th>업종</th><th>연락처</th><th>주소</th><th>담당</th></tr></thead>
+              <table><thead><tr><th>날짜</th><th>시간</th><th>업체명</th><th>업종</th><th>연락처</th><th>주소</th><th>담당</th><th>관리</th></tr></thead>
               <tbody id="month-book-list"></tbody></table>
             </div>
             <div id="month-book-empty" class="no-data" style="display:none">이번 달 예약이 없습니다</div>
@@ -918,6 +918,7 @@ function renderMonthList() {
       <td style="font-size:12px">${c.confirm_tel||row?.mobile||row?.tel||'-'}</td>
       <td style="font-size:12px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${row?.address||'-'}</td>
       <td><span class="avatar ${AV_CLASS[c.agent]}">${c.agent}</span></td>
+      <td><button onclick="deleteConsult(${c.id}, ${c.db_id})" style="background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">🗑️ 삭제</button></td>
     </tr>`;
   }).join('');
 }
@@ -1023,6 +1024,29 @@ function setResult(btn, value) {
   } else {
     document.querySelector('.script-section.s-book').style.borderLeftColor = '';
     document.querySelector('.script-section.s-book').style.background = '';
+  }
+}
+
+// 상담 삭제 함수
+async function deleteConsult(consultId, dbId) {
+  if (!confirm('이 상담 기록을 삭제하시겠어요?\n삭제하면 예약 일정에서도 사라집니다.')) return;
+  try {
+    const { error } = await sb.from('consults').delete().eq('id', consultId);
+    if (error) throw error;
+    // 클라이언트 상태도 미통화로 되돌리기
+    const remaining = consults.filter(c => c.db_id === dbId && c.id !== consultId);
+    if (remaining.length > 0) {
+      const latest = remaining[0];
+      await sb.from('clients').update({ status: latest.result }).eq('id', dbId);
+    } else {
+      await sb.from('clients').update({ status: '미통화' }).eq('id', dbId);
+    }
+    await loadAll();
+    if (selectedDate) renderDaySchedule();
+    renderMonthList();
+    toast('🗑️ 삭제 완료!');
+  } catch(e) {
+    toast('삭제 실패: ' + e.message);
   }
 }
 
