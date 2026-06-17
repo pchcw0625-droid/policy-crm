@@ -1202,6 +1202,8 @@ async function updateConsult(consultId, newDate, newTime, newMemo) {
 
 // 상담 삭제 함수
 async function deleteConsult(consultId, dbId) {
+  consultId = parseInt(consultId);
+  dbId = parseInt(dbId);
   if (!confirm('이 상담 기록을 삭제하시겠어요?\n삭제하면 예약 일정에서도 사라집니다.')) return;
   try {
     const { error } = await sb.from('consults').delete().eq('id', consultId);
@@ -1217,6 +1219,8 @@ async function deleteConsult(consultId, dbId) {
     await loadAll();
     if (selectedDate) renderDaySchedule();
     renderMonthList();
+    // 히스토리 탭이 열려있으면 갱신
+    if (document.getElementById('sec-history').classList.contains('active')) renderHistory();
     toast('🗑️ 삭제 완료!');
   } catch(e) {
     toast('삭제 실패: ' + e.message);
